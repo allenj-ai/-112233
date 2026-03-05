@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -345,6 +346,11 @@
                   <option value="DISPUTE">争议中</option>
                   <option value="ENDED">已结束</option>
                 </select>
+                <select id="orderModeFilter" style="width:120px;">
+                  <option value="ALL">全部模式</option>
+                  <option value="AMM">AMM</option>
+                  <option value="ORDERBOOK">订单簿</option>
+                </select>
               </div>
             </div>
             <div class="panel-body table-wrap">
@@ -625,7 +631,8 @@
       editingMarketId: null,
       filters: {
         search: "",
-        status: "ALL"
+        status: "ALL",
+        orderMode: "ALL"
       }
     };
 
@@ -634,6 +641,7 @@
     const marketTableBody = document.getElementById("marketTableBody");
     const searchInput = document.getElementById("searchInput");
     const statusFilter = document.getElementById("statusFilter");
+    const orderModeFilter = document.getElementById("orderModeFilter");
     const editModalMask = document.getElementById("editModalMask");
     const modalTitle = document.getElementById("modalTitle");
     const editTitle = document.getElementById("editTitle");
@@ -686,9 +694,12 @@
       return state.markets.filter((m) => {
         const matchStatus =
           state.filters.status === "ALL" || m.status === state.filters.status;
+        const matchOrderMode =
+          state.filters.orderMode === "ALL" ||
+          m.orderMode === state.filters.orderMode;
         const matchSearch =
           m.title.toLowerCase().includes(state.filters.search.toLowerCase());
-        return matchStatus && matchSearch;
+        return matchStatus && matchOrderMode && matchSearch;
       });
     }
 
@@ -907,6 +918,10 @@
     });
     statusFilter.addEventListener("change", (e) => {
       state.filters.status = e.target.value;
+      renderAll();
+    });
+    orderModeFilter.addEventListener("change", (e) => {
+      state.filters.orderMode = e.target.value;
       renderAll();
     });
     tabButtons.forEach((btn) => {
