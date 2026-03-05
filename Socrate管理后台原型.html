@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Socrate 管理后台原型</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0a0a0a;
+      --panel: #151515;
+      --panel-2: #1f1f1f;
+      --line: #2d2d2d;
+      --text: #ececec;
+      --muted: #9a9a9a;
+      --green: #22c55e;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --blue: #3b82f6;
+    }
+    body.theme-light {
+      --bg: #f3f4f6;
+      --panel: #ffffff;
+      --panel-2: #f8fafc;
+      --line: #d9e1ea;
+      --text: #111827;
+      --muted: #6b7280;
+    }
+    body.theme-light .tab-btn.active {
+      border-color: #111827;
+      background: #111827;
+      color: #ffffff;
+    }
+    body.theme-light .prd-title { color: #111827; }
+    body.theme-light .prd-text { color: #374151; }
+    body.theme-light .prd-list { color: #1f2937; }
+    body.theme-light .prd-list div::before { color: #111827; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.4;
+    }
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      gap: 16px;
+    }
+    .workspace {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 14px;
+      align-items: start;
+    }
+    .tabs {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      padding: 10px;
+      position: sticky;
+      top: 12px;
+      display: grid;
+      gap: 8px;
+    }
+    .prd-card {
+      margin-top: 8px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: var(--panel-2);
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+    }
+    .prd-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #dbeafe;
+      letter-spacing: .02em;
+    }
+    .prd-text {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .prd-list {
+      display: grid;
+      gap: 6px;
+      font-size: 12px;
+      color: #cfcfcf;
+      line-height: 1.45;
+    }
+    .prd-list div::before {
+      content: "• ";
+      color: #7fb0ff;
+    }
+    .tab-btn {
+      width: 100%;
+      text-align: left;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 10px 12px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .tab-btn.active {
+      border-color: rgba(59,130,246,.55);
+      background: rgba(59,130,246,.16);
+      color: #d8e7ff;
+    }
+    .content {
+      display: grid;
+      gap: 16px;
+    }
+    .tab-view { display: none; }
+    .tab-view.active {
+      display: grid;
+      gap: 16px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 16px;
+      background: var(--panel);
+    }
+    .title {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    .subtitle {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    .btn {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-2);
+      color: var(--text);
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn:hover { border-color: #4a4a4a; }
+    .btn.primary { background: rgba(59,130,246,.15); border-color: rgba(59,130,246,.5); }
+    .btn.warn { background: rgba(245,158,11,.15); border-color: rgba(245,158,11,.5); }
+    .btn.danger { background: rgba(239,68,68,.15); border-color: rgba(239,68,68,.5); }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      padding: 14px;
+    }
+    .card-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .card-value {
+      font-size: 22px;
+      font-weight: 700;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+    .panel-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .panel-title { font-weight: 600; }
+    .panel-body { padding: 14px; }
+
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 160px 160px;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .field label {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 9px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+      outline: none;
+      font-size: 13px;
+    }
+    textarea { resize: vertical; min-height: 92px; }
+    input:focus, select:focus, textarea:focus { border-color: #4f4f4f; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+    th { color: var(--muted); font-weight: 500; font-size: 12px; }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 20px;
+      padding: 2px 8px;
+      font-size: 12px;
+      border: 1px solid transparent;
+    }
+    .status.active { color: var(--green); border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.12); }
+    .status.closed { color: #c9c9c9; border-color: rgba(190,190,190,.35); background: rgba(190,190,190,.1); }
+    .status.settling { color: #60a5fa; border-color: rgba(96,165,250,.35); background: rgba(96,165,250,.12); }
+    .status.announcement { color: var(--yellow); border-color: rgba(245,158,11,.35); background: rgba(245,158,11,.12); }
+    .status.dispute { color: var(--red); border-color: rgba(239,68,68,.35); background: rgba(239,68,68,.12); }
+    .status.ended { color: #a3a3a3; border-color: rgba(163,163,163,.35); background: rgba(163,163,163,.1); }
+    .muted { color: var(--muted); }
+
+    .action-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .modal-mask {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .modal {
+      width: min(760px, 100%);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+    .modal-head, .modal-foot {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-foot {
+      border-bottom: none;
+      border-top: 1px solid var(--line);
+      gap: 8px;
+      justify-content: flex-end;
+    }
+    .modal-body { padding: 14px; display: grid; gap: 12px; }
+
+    .toast {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-size: 13px;
+      display: none;
+    }
+
+    @media (max-width: 980px) {
+      .workspace { grid-template-columns: 1fr; }
+      .tabs {
+        position: static;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+      .tab-btn { text-align: center; padding: 8px; }
+      .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .row { grid-template-columns: 1fr; }
+      .table-wrap { overflow: auto; }
+      table { min-width: 1420px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <div class="title">Socrate 项目管理后台</div>
+      </div>
+      <button class="btn" id="themeToggleBtn">切换亮色</button>
+    </div>
+
+    <div class="workspace">
+      <aside class="tabs">
+        <button class="tab-btn active" data-tab="management">市场管理</button>
+        <button class="tab-btn" data-tab="settlement">结算管理</button>
+        <button class="tab-btn" data-tab="prd">PRD 文档</button>
+      </aside>
+
+      <main class="content">
+        <section class="tab-view active" data-view="management">
+          <div class="grid-4" id="summaryCards"></div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">市场列表</div>
+              <div class="action-row">
+                <input id="searchInput" placeholder="搜索市场标题..." style="width:220px;">
+                <select id="statusFilter" style="width:140px;">
+                  <option value="ALL">全部状态</option>
+                  <option value="ACTIVE">进行中</option>
+                  <option value="CLOSED">已封盘</option>
+                  <option value="SETTLING">结算中</option>
+                  <option value="ANNOUNCEMENT">公示期</option>
+                  <option value="DISPUTE">争议中</option>
+                  <option value="ENDED">已结束</option>
+                </select>
+              </div>
+            </div>
+            <div class="panel-body table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>市场</th>
+                    <th>状态</th>
+                    <th>订单模式</th>
+                    <th>总交易量</th>
+                    <th>总手续费</th>
+                    <th>交易人数</th>
+                    <th>总流动性</th>
+                    <th>兑付金额</th>
+                    <th>LP 分配金额</th>
+                    <th>结束时间</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="marketTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-view" data-view="settlement">
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">系统参数配置</div>
+            </div>
+            <div class="panel-body">
+              <div class="row">
+                <div class="field">
+                  <label>提案保证金（USDT）</label>
+                  <input id="proposalBond" type="number" min="0" step="1">
+                </div>
+                <div class="field">
+                  <label>争议保证金（USDT）</label>
+                  <input id="disputeBond" type="number" min="0" step="1">
+                </div>
+                <div class="field">
+                  <label>公示期（小时）</label>
+                  <input id="announcementHours" type="number" min="1" step="1">
+                </div>
+              </div>
+              <div class="action-row">
+                <button class="btn primary" id="saveConfigBtn">保存参数</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">结算管理</div>
+            </div>
+            <div class="panel-body table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>市场</th>
+                    <th>状态</th>
+                    <th>订单模式</th>
+                    <th>总流动性</th>
+                    <th>兑付金额</th>
+                    <th>LP 分配金额</th>
+                    <th>结束时间</th>
+                    <th>操作</th>
+                  </tr>
+                </thead>
+                <tbody id="settlementTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">操作记录</div>
+            </div>
+            <div class="panel-body">
+              <div id="operationLogList" class="muted"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="tab-view" data-view="prd">
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">后台 PRD 文档说明</div>
+            </div>
+            <div class="panel-body">
+              <div class="prd-card" style="margin-top:0;">
+                <div class="prd-title">1. 市场管理 - 统计区字段说明</div>
+                <div class="prd-list">
+                  <div>市场总数：当前筛选条件下的市场数量（单位：个）。</div>
+                  <div>总交易量：当前筛选结果内所有市场累计成交金额（单位：USDT）。</div>
+                  <div>累计手续费：当前筛选结果内所有市场累计手续费（单位：USDT）。</div>
+                  <div>交易参与人数：当前筛选结果内交易人数合计（展示口径：人次）。</div>
+                </div>
+              </div>
+              <div class="prd-card">
+                <div class="prd-title">2. 市场管理 - 市场列表字段说明</div>
+                <div class="prd-list">
+                  <div>市场：展示市场标题；副信息展示 Market ID 与上架状态（已上架/已下架）。</div>
+                  <div>状态：进行中、已封盘、结算中、公示期、争议中、已结束。</div>
+                  <div>订单模式：AMM 或 订单簿。</div>
+                  <div>总交易量：该市场累计成交金额（USDT）。</div>
+                  <div>总手续费：该市场累计手续费（USDT）。</div>
+                  <div>交易人数：该市场累计交易参与人数（人次）。</div>
+                  <div>总流动性：该市场当前资金池规模（USDT）。</div>
+                  <div>兑付金额：该市场结算需兑付给用户的金额（USDT）。</div>
+                  <div>LP 分配金额：总流动性 - 兑付金额（USDT）。</div>
+                  <div>封盘时间：编辑弹窗字段，停止新下单的时间点（yyyy-mm-dd hh:mm）。</div>
+                  <div>结束时间：市场交易结束时间（yyyy-mm-dd hh:mm）。</div>
+                </div>
+              </div>
+              <div class="prd-card">
+                <div class="prd-title">3. 市场管理 - 操作与筛选说明</div>
+                <div class="prd-list">
+                  <div>搜索框：按市场标题关键词模糊匹配。</div>
+                  <div>状态筛选：按状态过滤列表与统计区数据。</div>
+                  <div>编辑：仅可修改市场标题、市场描述、封盘时间、结束时间。</div>
+                  <div>下架/恢复上架：切换市场展示状态。</div>
+                  <div>限制：市场管理中无法直接改变市场状态，也不提供“提前结束”操作；状态变更仅能在结算管理执行。</div>
+                </div>
+              </div>
+              <div class="prd-card">
+                <div class="prd-title">4. 结算管理 - 参数配置字段说明</div>
+                <div class="prd-list">
+                  <div>提案保证金（USDT）：发起提案时需缴纳的保证金，默认 500。</div>
+                  <div>争议保证金（USDT）：发起争议时需缴纳的保证金，默认 500。</div>
+                  <div>公示期（小时）：结算公示持续时间，默认 24h。</div>
+                  <div>保存参数：提交并生效上述配置，同时写入操作记录。</div>
+                </div>
+              </div>
+              <div class="prd-card">
+                <div class="prd-title">5. 结算管理 - 结算列表字段与操作</div>
+                <div class="prd-list">
+                  <div>列表范围：展示全部市场（含进行中市场）。</div>
+                  <div>展示字段：市场、状态、订单模式、总流动性、兑付金额、LP 分配金额、结束时间。</div>
+                  <div>提前结束：唯一可执行动作，进行中/已封盘/结算中/公示期/争议中市场均可执行；执行后状态改为“已结束”，结束时间更新为当前时间。</div>
+                </div>
+              </div>
+              <div class="prd-card">
+                <div class="prd-title">6. 结算管理 - 操作记录字段说明</div>
+                <div class="prd-list">
+                  <div>记录时间：操作发生时间（yyyy-mm-dd hh:mm）。</div>
+                  <div>记录内容：操作类型 + 市场 ID 或参数值变更内容。</div>
+                  <div>记录范围：参数保存、提前结束、上下架、市场编辑。</div>
+                  <div>展示顺序：最新记录在最上方。</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-mask" id="editModalMask">
+    <div class="modal">
+      <div class="modal-head">
+        <div id="modalTitle">编辑市场</div>
+        <button class="btn" id="closeModalBtn">关闭</button>
+      </div>
+      <div class="modal-body">
+        <div class="field">
+          <label>市场标题</label>
+          <input id="editTitle" type="text">
+        </div>
+        <div class="field">
+          <label>市场描述</label>
+          <textarea id="editDescription"></textarea>
+        </div>
+        <div class="field">
+          <label>封盘时间</label>
+          <input id="editLockTime" type="datetime-local">
+        </div>
+        <div class="field">
+          <label>结束时间</label>
+          <input id="editEndTime" type="datetime-local">
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn primary" id="saveMarketBtn">保存修改</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const state = {
+      config: {
+        proposalBond: 500,
+        disputeBond: 500,
+        announcementHours: 24
+      },
+      markets: [
+        {
+          id: "MKT-001",
+          title: "BTC 会在 2026Q2 站上 120,000 USDT 吗？",
+          status: "ACTIVE",
+          orderMode: "AMM",
+          listed: true,
+          volume: 1823000,
+          fees: 27840,
+          traders: 1392,
+          liquidity: 620000,
+          payoutAmount: 410000,
+          lockTime: "2026-05-28T20:00",
+          endTime: "2026-05-30T20:00",
+          description: "根据主流交易所收盘价判定，若任一交易日收盘价达到阈值则视为 YES。"
+        },
+        {
+          id: "MKT-002",
+          title: "某 Layer2 主网上线后 30 天 TVL 能否突破 5 亿？",
+          status: "SETTLING",
+          orderMode: "ORDERBOOK",
+          listed: true,
+          volume: 623000,
+          fees: 9120,
+          traders: 486,
+          liquidity: 220000,
+          payoutAmount: 150000,
+          lockTime: "2026-03-13T12:00",
+          endTime: "2026-03-15T12:00",
+          description: "以 DefiLlama 对应协议 TVL 截图与 API 为最终判定依据。"
+        },
+        {
+          id: "MKT-003",
+          title: "AI Agent 赛道季度融资额会不会创新高？",
+          status: "DISPUTE",
+          orderMode: "AMM",
+          listed: false,
+          volume: 311500,
+          fees: 4550,
+          traders: 308,
+          liquidity: 132000,
+          payoutAmount: 98000,
+          lockTime: "2026-03-31T16:00",
+          endTime: "2026-04-02T16:00",
+          description: "统计公开披露融资，按季度累计金额，排除未披露具体金额事件。"
+        },
+        {
+          id: "MKT-004",
+          title: "Socrate 平台本月新增用户是否超过 10,000？",
+          status: "ENDED",
+          orderMode: "ORDERBOOK",
+          listed: true,
+          volume: 955000,
+          fees: 14120,
+          traders: 702,
+          liquidity: 380000,
+          payoutAmount: 272000,
+          lockTime: "2026-02-26T23:59",
+          endTime: "2026-02-28T23:59",
+          description: "统计实名认证通过且首次完成交易的钱包地址数量。"
+        },
+        {
+          id: "MKT-005",
+          title: "ETH 现货 ETF 本季度净流入是否超过 80 亿美元？",
+          status: "ANNOUNCEMENT",
+          orderMode: "AMM",
+          listed: true,
+          volume: 435000,
+          fees: 6120,
+          traders: 355,
+          liquidity: 180000,
+          payoutAmount: 126000,
+          lockTime: "2026-03-04T18:00",
+          endTime: "2026-03-06T18:00",
+          description: "以公开披露 ETF 资金净流入数据源为准，按季度累计计算。"
+        }
+      ],
+      operationLogs: [
+        { time: "2026-03-02 10:15", detail: "系统初始化：导入 5 条市场数据" }
+      ],
+      editingMarketId: null,
+      filters: {
+        search: "",
+        status: "ALL"
+      }
+    };
+
+    const summaryCards = document.getElementById("summaryCards");
+    const settlementTableBody = document.getElementById("settlementTableBody");
+    const marketTableBody = document.getElementById("marketTableBody");
+    const searchInput = document.getElementById("searchInput");
+    const statusFilter = document.getElementById("statusFilter");
+    const editModalMask = document.getElementById("editModalMask");
+    const modalTitle = document.getElementById("modalTitle");
+    const editTitle = document.getElementById("editTitle");
+    const editDescription = document.getElementById("editDescription");
+    const editLockTime = document.getElementById("editLockTime");
+    const editEndTime = document.getElementById("editEndTime");
+    const toast = document.getElementById("toast");
+    const themeToggleBtn = document.getElementById("themeToggleBtn");
+    const operationLogList = document.getElementById("operationLogList");
+    const tabButtons = Array.from(document.querySelectorAll(".tab-btn"));
+    const tabViews = Array.from(document.querySelectorAll(".tab-view"));
+
+    function showToast(msg) {
+      toast.textContent = msg;
+      toast.style.display = "block";
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => {
+        toast.style.display = "none";
+      }, 1800);
+    }
+
+    function applyTheme(theme) {
+      const isLight = theme === "light";
+      document.body.classList.toggle("theme-light", isLight);
+      themeToggleBtn.textContent = isLight ? "切换暗色" : "切换亮色";
+      localStorage.setItem("socrate-admin-theme", theme);
+    }
+
+    function statusLabel(status) {
+      const map = {
+        ACTIVE: "进行中",
+        CLOSED: "已封盘",
+        SETTLING: "结算中",
+        ANNOUNCEMENT: "公示期",
+        DISPUTE: "争议中",
+        ENDED: "已结束"
+      };
+      return map[status] || status;
+    }
+
+    function orderModeLabel(mode) {
+      return mode === "ORDERBOOK" ? "订单簿" : "AMM";
+    }
+
+    function formatMoney(v) {
+      return new Intl.NumberFormat("zh-CN").format(v);
+    }
+
+    function getFilteredMarkets() {
+      return state.markets.filter((m) => {
+        const matchStatus =
+          state.filters.status === "ALL" || m.status === state.filters.status;
+        const matchSearch =
+          m.title.toLowerCase().includes(state.filters.search.toLowerCase());
+        return matchStatus && matchSearch;
+      });
+    }
+
+    function renderSummary() {
+      const list = getFilteredMarkets();
+      const totalVolume = list.reduce((sum, m) => sum + m.volume, 0);
+      const totalFees = list.reduce((sum, m) => sum + m.fees, 0);
+      const totalTraders = list.reduce((sum, m) => sum + m.traders, 0);
+      const cards = [
+        { label: "市场总数", value: list.length.toString() },
+        { label: "总交易量", value: formatMoney(totalVolume) + " USDT" },
+        { label: "累计手续费", value: formatMoney(totalFees) + " USDT" },
+        { label: "交易参与人数", value: formatMoney(totalTraders) + " 人次" }
+      ];
+
+      summaryCards.innerHTML = cards
+        .map(
+          (c) => `
+            <div class="card">
+              <div class="card-label">${c.label}</div>
+              <div class="card-value">${c.value}</div>
+            </div>
+          `
+        )
+        .join("");
+    }
+
+    function renderTable() {
+      const rows = getFilteredMarkets()
+        .map(
+          (m) => `
+            <tr>
+              <td>
+                <div style="font-weight:600">${m.title}</div>
+                <div class="muted" style="font-size:12px;margin-top:4px">${m.id} · ${m.listed ? "已上架" : "已下架"}</div>
+              </td>
+              <td>
+                <span class="status ${m.status.toLowerCase()}">${statusLabel(m.status)}</span>
+              </td>
+              <td>${orderModeLabel(m.orderMode)}</td>
+              <td>${formatMoney(m.volume)} USDT</td>
+              <td>${formatMoney(m.fees)} USDT</td>
+              <td>${formatMoney(m.traders)}</td>
+              <td>${formatMoney(m.liquidity)} USDT</td>
+              <td>${formatMoney(m.payoutAmount)} USDT</td>
+              <td>${formatMoney(m.liquidity - m.payoutAmount)} USDT</td>
+              <td>${m.endTime.replace("T", " ")}</td>
+              <td>
+                <div class="action-row">
+                  <button class="btn" onclick="openEdit('${m.id}')">编辑</button>
+                  <button class="btn warn" onclick="toggleListing('${m.id}')">${m.listed ? "下架" : "恢复上架"}</button>
+                </div>
+              </td>
+            </tr>
+          `
+        )
+        .join("");
+
+      marketTableBody.innerHTML =
+        rows ||
+        `<tr><td colspan="11" class="muted" style="text-align:center;padding:18px">暂无符合条件的市场</td></tr>`;
+    }
+
+    function renderSettlementTable() {
+      const rows = state.markets
+        .map(
+          (m) => `
+            <tr>
+              <td>
+                <div style="font-weight:600">${m.title}</div>
+                <div class="muted" style="font-size:12px;margin-top:4px">${m.id} · ${m.listed ? "已上架" : "已下架"}</div>
+              </td>
+              <td><span class="status ${m.status.toLowerCase()}">${statusLabel(m.status)}</span></td>
+              <td>${orderModeLabel(m.orderMode)}</td>
+              <td>${formatMoney(m.liquidity)} USDT</td>
+              <td>${formatMoney(m.payoutAmount)} USDT</td>
+              <td>${formatMoney(m.liquidity - m.payoutAmount)} USDT</td>
+              <td>${m.endTime.replace("T", " ")}</td>
+              <td>
+                <div class="action-row">
+                  <button class="btn danger" onclick="manualEnd('${m.id}')">提前结束</button>
+                </div>
+              </td>
+            </tr>
+          `
+        )
+        .join("");
+
+      settlementTableBody.innerHTML =
+        rows ||
+        `<tr><td colspan="8" class="muted" style="text-align:center;padding:18px">暂无市场数据</td></tr>`;
+    }
+
+    function addOperationLog(detail) {
+      const now = new Date();
+      const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 16)
+        .replace("T", " ");
+      state.operationLogs.unshift({ time: local, detail });
+      if (state.operationLogs.length > 20) state.operationLogs.length = 20;
+    }
+
+    function renderOperationLogs() {
+      operationLogList.innerHTML = state.operationLogs.length
+        ? state.operationLogs
+            .map(
+              (log) => `
+                <div style="padding:8px 0;border-bottom:1px solid var(--line);display:flex;gap:12px;">
+                  <span style="color:var(--muted);min-width:130px;">${log.time}</span>
+                  <span>${log.detail}</span>
+                </div>
+              `
+            )
+            .join("")
+        : `<div class="muted">暂无操作记录</div>`;
+    }
+
+    function switchTab(tab) {
+      tabButtons.forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.tab === tab);
+      });
+      tabViews.forEach((view) => {
+        view.classList.toggle("active", view.dataset.view === tab);
+      });
+    }
+
+    function renderAll() {
+      renderSummary();
+      renderSettlementTable();
+      renderOperationLogs();
+      renderTable();
+    }
+
+    function syncConfigToInputs() {
+      document.getElementById("proposalBond").value = state.config.proposalBond;
+      document.getElementById("disputeBond").value = state.config.disputeBond;
+      document.getElementById("announcementHours").value = state.config.announcementHours;
+    }
+
+    function openEdit(id) {
+      state.editingMarketId = id;
+      const market = state.markets.find((m) => m.id === id);
+      if (!market) return;
+      modalTitle.textContent = "编辑市场：" + market.title;
+      editTitle.value = market.title;
+      editDescription.value = market.description;
+      editLockTime.value = market.lockTime;
+      editEndTime.value = market.endTime;
+      editModalMask.style.display = "flex";
+    }
+
+    function closeEdit() {
+      editModalMask.style.display = "none";
+      state.editingMarketId = null;
+    }
+
+    function saveMarket() {
+      const idx = state.markets.findIndex((m) => m.id === state.editingMarketId);
+      if (idx < 0) return;
+      state.markets[idx] = {
+        ...state.markets[idx],
+        title: editTitle.value.trim(),
+        description: editDescription.value.trim(),
+        lockTime: editLockTime.value,
+        endTime: editEndTime.value
+      };
+      closeEdit();
+      addOperationLog(`编辑市场：${state.markets[idx].id}，更新了标题/描述/封盘时间/结束时间`);
+      renderAll();
+      showToast("市场信息已保存");
+    }
+
+    function manualEnd(id) {
+      const idx = state.markets.findIndex((m) => m.id === id);
+      if (idx < 0) return;
+      const now = new Date();
+      const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, 16);
+      state.markets[idx].status = "ENDED";
+      state.markets[idx].endTime = local;
+      addOperationLog(`提前结束市场：${state.markets[idx].id}`);
+      renderAll();
+      showToast("已执行手动提前结束");
+    }
+
+    function toggleListing(id) {
+      const idx = state.markets.findIndex((m) => m.id === id);
+      if (idx < 0) return;
+      state.markets[idx].listed = !state.markets[idx].listed;
+      addOperationLog(
+        `${state.markets[idx].listed ? "恢复上架" : "下架"}市场：${state.markets[idx].id}`
+      );
+      renderAll();
+      showToast(state.markets[idx].listed ? "已恢复上架" : "已下架");
+    }
+
+    document.getElementById("saveConfigBtn").addEventListener("click", () => {
+      state.config.proposalBond = Number(document.getElementById("proposalBond").value || 0);
+      state.config.disputeBond = Number(document.getElementById("disputeBond").value || 0);
+      state.config.announcementHours = Number(document.getElementById("announcementHours").value || 1);
+      addOperationLog(
+        `更新结算参数：提案保证金 ${state.config.proposalBond}，争议保证金 ${state.config.disputeBond}，公示期 ${state.config.announcementHours}h`
+      );
+      showToast("参数已保存（原型数据）");
+      renderOperationLogs();
+    });
+
+    document.getElementById("closeModalBtn").addEventListener("click", closeEdit);
+    document.getElementById("saveMarketBtn").addEventListener("click", saveMarket);
+
+    searchInput.addEventListener("input", (e) => {
+      state.filters.search = e.target.value || "";
+      renderAll();
+    });
+    statusFilter.addEventListener("change", (e) => {
+      state.filters.status = e.target.value;
+      renderAll();
+    });
+    tabButtons.forEach((btn) => {
+      btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+    });
+    themeToggleBtn.addEventListener("click", () => {
+      const nextTheme = document.body.classList.contains("theme-light")
+        ? "dark"
+        : "light";
+      applyTheme(nextTheme);
+    });
+
+    editModalMask.addEventListener("click", (e) => {
+      if (e.target === editModalMask) closeEdit();
+    });
+
+    window.openEdit = openEdit;
+    window.manualEnd = manualEnd;
+    window.toggleListing = toggleListing;
+    window.switchTab = switchTab;
+
+    const savedTheme = localStorage.getItem("socrate-admin-theme") || "dark";
+    applyTheme(savedTheme);
+    syncConfigToInputs();
+    renderAll();
+  </script>
+</body>
+</html>
