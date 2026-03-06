@@ -253,6 +253,16 @@
       gap: 8px;
       flex-wrap: wrap;
     }
+    .option-list {
+      display: grid;
+      gap: 8px;
+    }
+    .option-item {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      align-items: center;
+    }
 
     .modal-mask {
       position: fixed;
@@ -525,6 +535,10 @@
           <textarea id="editDescription"></textarea>
         </div>
         <div class="field">
+          <label>市场选项（仅可修改名称）</label>
+          <div id="editOptionsList" class="option-list"></div>
+        </div>
+        <div class="field">
           <label>封盘时间</label>
           <input id="editLockTime" type="datetime-local">
         </div>
@@ -562,6 +576,7 @@
           payoutAmount: 410000,
           lockTime: "2026-05-28T20:00",
           endTime: "2026-05-30T20:00",
+          options: ["YES", "NO"],
           description: "根据主流交易所收盘价判定，若任一交易日收盘价达到阈值则视为 YES。"
         },
         {
@@ -577,6 +592,7 @@
           payoutAmount: 150000,
           lockTime: "2026-03-13T12:00",
           endTime: "2026-03-15T12:00",
+          options: ["会突破", "不会突破"],
           description: "以 DefiLlama 对应协议 TVL 截图与 API 为最终判定依据。"
         },
         {
@@ -592,6 +608,7 @@
           payoutAmount: 98000,
           lockTime: "2026-03-31T16:00",
           endTime: "2026-04-02T16:00",
+          options: ["创新高", "不创新高"],
           description: "统计公开披露融资，按季度累计金额，排除未披露具体金额事件。"
         },
         {
@@ -607,6 +624,7 @@
           payoutAmount: 272000,
           lockTime: "2026-02-26T23:59",
           endTime: "2026-02-28T23:59",
+          options: ["超过 10,000", "不超过 10,000"],
           description: "统计实名认证通过且首次完成交易的钱包地址数量。"
         },
         {
@@ -622,6 +640,7 @@
           payoutAmount: 126000,
           lockTime: "2026-03-04T18:00",
           endTime: "2026-03-06T18:00",
+          options: ["超过 80 亿", "不超过 80 亿"],
           description: "以公开披露 ETF 资金净流入数据源为准，按季度累计计算。"
         }
       ],
@@ -646,6 +665,7 @@
     const modalTitle = document.getElementById("modalTitle");
     const editTitle = document.getElementById("editTitle");
     const editDescription = document.getElementById("editDescription");
+    const editOptionsList = document.getElementById("editOptionsList");
     const editLockTime = document.getElementById("editLockTime");
     const editEndTime = document.getElementById("editEndTime");
     const toast = document.getElementById("toast");
@@ -688,6 +708,32 @@
 
     function formatMoney(v) {
       return new Intl.NumberFormat("zh-CN").format(v);
+    }
+
+    function addOptionInput(value = "") {
+      const row = document.createElement("div");
+      row.className = "option-item";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "option-input";
+      input.placeholder = "请输入选项";
+      input.value = value;
+
+      row.appendChild(input);
+      editOptionsList.appendChild(row);
+    }
+
+    function setOptionInputs(options) {
+      editOptionsList.innerHTML = "";
+      const values = options && options.length ? options : [""];
+      values.forEach((v) => addOptionInput(v));
+    }
+
+    function getOptionInputs() {
+      return Array.from(editOptionsList.querySelectorAll(".option-input")).map(
+        (input) => input.value.trim()
+      );
     }
 
     function getFilteredMarkets() {
@@ -847,6 +893,7 @@
       modalTitle.textContent = "编辑市场：" + market.title;
       editTitle.value = market.title;
       editDescription.value = market.description;
+      setOptionInputs(market.options || []);
       editLockTime.value = market.lockTime;
       editEndTime.value = market.endTime;
       editModalMask.style.display = "flex";
@@ -860,15 +907,21 @@
     function saveMarket() {
       const idx = state.markets.findIndex((m) => m.id === state.editingMarketId);
       if (idx < 0) return;
+      const options = getOptionInputs();
+      if (options.some((o) => !o)) {
+        showToast("选项名称不能为空");
+        return;
+      }
       state.markets[idx] = {
         ...state.markets[idx],
         title: editTitle.value.trim(),
         description: editDescription.value.trim(),
+        options,
         lockTime: editLockTime.value,
         endTime: editEndTime.value
       };
       closeEdit();
-      addOperationLog(`编辑市场：${state.markets[idx].id}，更新了标题/描述/封盘时间/结束时间`);
+      addOperationLog(`编辑市场：${state.markets[idx].id}，更新了标题/描述/选项/封盘时间/结束时间`);
       renderAll();
       showToast("市场信息已保存");
     }
